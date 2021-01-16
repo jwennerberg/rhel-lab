@@ -1,0 +1,8 @@
+---
+rhel_hostname: rhel8
+
+enable_rhsm: false
+enabled_repos_rhel8:
+  - rhel-8-for-x86_64-appstream-rpms
+  - rhel-8-for-x86_64-baseos-rpms
+  - ansible-2-for-rhel-8-x86_64-rpms

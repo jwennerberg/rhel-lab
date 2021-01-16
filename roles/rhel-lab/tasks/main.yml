@@ -1,0 +1,38 @@
+---
+#- name: Set hostname
+#  ansible.builtin.hostname:
+#    name: "{{ rhel_hostname }}"
+
+- name: Add rhel user
+  ansible.builtin.user:
+    name: rhel
+    groups: wheel
+    append: yes
+
+- name: Enable nopasswd sudo for wheel
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/wheel
+    content: "%wheel	ALL=(ALL)	NOPASSWD: ALL"
+    mode: 0600
+
+- name: Add authorized key for rhel user
+  ansible.posix.authorized_key:
+    user: rhel
+    state: present
+    key: "{{ ssh_authorized_keys }}"
+  when: ssh_authorized_keys is defined
+
+- name: Subscribe to Red Hat
+  community.general.redhat_subscription:
+    state: present
+    username: "{{ subs_username }}"
+    password: "{{ subs_pw }}"
+    autosubscribe: false
+    pool: "{{ subs_pool }}"
+  when: enable_rhsm | bool
+
+- name: Enable required repositories
+  community.general.rhsm_repository:
+    name: "{{ eabled_repos_rhel8 }}"
+    state: enabled
+  when: enable_rhsm | bool
