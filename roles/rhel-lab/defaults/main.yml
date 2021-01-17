@@ -1,5 +1,5 @@
 ---
-rhel_hostname: rhel8
+rhel_hostname: "{{ inventory_hostname }}"
 
 enable_rhsm: false
 enabled_repos_rhel8:

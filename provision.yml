@@ -1,7 +1,6 @@
 ---
 - name: Prepare and configure the base
   hosts:  all
-  gather_facts: no
   become: yes
   roles:
     - rhel-lab

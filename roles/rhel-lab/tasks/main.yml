@@ -1,7 +1,7 @@
 ---
-#- name: Set hostname
-#  ansible.builtin.hostname:
-#    name: "{{ rhel_hostname }}"
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ rhel_hostname }}"
 
 - name: Add rhel user
   ansible.builtin.user:
@@ -22,6 +22,12 @@
     key: "{{ ssh_authorized_keys }}"
   when: ssh_authorized_keys is defined
 
+- name: Update /etc/hosts file
+  ansible.builtin.blockinfile:
+    dest: /etc/hosts
+    content: "{{ lookup('template', 'templates/hosts.j2') }}"
+    state: present
+
 - name: Subscribe to Red Hat
   community.general.redhat_subscription:
     state: present
@@ -33,6 +39,6 @@
 
 - name: Enable required repositories
   community.general.rhsm_repository:
-    name: "{{ eabled_repos_rhel8 }}"
+    name: "{{ enabled_repos_rhel8 }}"
     state: enabled
   when: enable_rhsm | bool

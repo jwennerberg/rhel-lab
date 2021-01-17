@@ -3,8 +3,8 @@ Vagrant.configure("2") do |config|
   (1..N).each do |i|
     config.vm.define "rhel-lab#{i}" do |rhel|
       rhel.vm.box = "generic/rhel8"
-      rhel.vm.hostname   = "rhel-#{i}"
-      rhel.vm.network :private_network, ip: "10.0.1.#{10+i}"
+      rhel.vm.hostname = "rhel-lab#{i}"
+      rhel.vm.network "private_network", ip: "10.0.1.#{10+i}", hostname: true
 
       if i == N
         rhel.vm.provision :ansible do |ansible|
