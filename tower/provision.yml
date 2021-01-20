@@ -1,0 +1,9 @@
+---
+- name: Prepare and configure the base
+  hosts:  all
+  become: yes
+  vars:
+    enable_rhsm: true
+    deploy_ansible_tower: true
+  roles:
+    - rhel-lab

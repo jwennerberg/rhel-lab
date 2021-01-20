@@ -1,8 +1,13 @@
 ---
 rhel_hostname: "{{ inventory_hostname }}"
 
+deploy_ansible_tower: false
+
 enable_rhsm: false
 enabled_repos_rhel8:
   - rhel-8-for-x86_64-appstream-rpms
   - rhel-8-for-x86_64-baseos-rpms
   - ansible-2-for-rhel-8-x86_64-rpms
+
+tower_admin_password: "{{ lookup('password', '/dev/null length=16 chars=ascii_letters') }}"
+tower_pg_password: "{{ lookup('password', '/dev/null length=16 chars=ascii_letters') }}"

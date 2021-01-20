@@ -1,0 +1,17 @@
+[tower]
+localhost ansible_connection=local
+
+[automationhub]
+
+[database]
+
+[all:vars]
+admin_password='{{ tower_admin_password }}'
+
+pg_host=''
+pg_port=''
+
+pg_database='awx'
+pg_username='awx'
+pg_password='{{ tower_pg_password }}'
+pg_sslmode='prefer'  # set to 'verify-full' for client-side enforced SSL

@@ -34,11 +34,19 @@
     username: "{{ subs_username }}"
     password: "{{ subs_pw }}"
     autosubscribe: false
-    pool: "{{ subs_pool }}"
-  when: enable_rhsm | bool
+    pool_ids: "{{ subs_pool_ids }}"
+  when:
+    - enable_rhsm | bool
+    - subs_username is defined
+    - subs_pw is defined
+    - subs_pool_ids is defined
 
 - name: Enable required repositories
   community.general.rhsm_repository:
     name: "{{ enabled_repos_rhel8 }}"
     state: enabled
   when: enable_rhsm | bool
+
+- name: Ansible Tower
+  ansible.builtin.include_tasks: tower.yml
+  when: deploy_ansible_tower | bool
