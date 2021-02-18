@@ -1,0 +1,13 @@
+---
+- name: Prepare and configure the base
+  hosts:  all
+  become: yes
+  vars:
+    enable_rhsm: true
+    subs_pool_ids: 8a85f99f7609cb37017643fe113738ff # Ansible Automation Platform
+    aap_component: automationhub
+    aap_setup_package_url: https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
+    aap_setup_pkg_pattern: "ansible-tower-setup-*"
+  roles:
+    - jwennerberg.rhlabs.rhel
+    - jwennerberg.rhlabs.aap

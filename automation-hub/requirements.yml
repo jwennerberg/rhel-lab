@@ -1,0 +1,4 @@
+collections:
+  - name: https://github.com/jwennerberg/ansible-collection-rhlabs.git
+    type: git
+    version: master
