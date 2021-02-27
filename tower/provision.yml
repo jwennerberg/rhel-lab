@@ -1,9 +1,25 @@
 ---
-- name: Prepare and configure the base
+- name: Provision Anible Tower on RHEL
   hosts:  all
   become: yes
+
   vars:
+    aap_component: tower
+    aap_populate_tower: true
     enable_rhsm: true
-    deploy_ansible_tower: true
-  roles:
-    - rhel-lab
+
+  tasks:
+    - name: Configure rhel instance
+      include_role:
+        name: jwennerberg.rhlabs.rhel
+
+    - name: Install and configure Tower
+      include_role:
+        name: jwennerberg.rhlabs.aap
+        public: true
+
+    - name: Populate Tower
+      ansible.builtin.include_role:
+        name: jwennerberg.rhlabs.aap
+        tasks_from: populate_tower_lab.yml
+      when: aap_populate_tower | default(false) | bool
