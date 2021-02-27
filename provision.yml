@@ -1,6 +1,10 @@
 ---
-- name: Prepare and configure the base
-  hosts:  all
+- name: Provision RHEL lab servers
+  hosts:  rhel_lab
   become: yes
+
+  vars:
+    enable_rhsm: true
+
   roles:
-    - rhel-lab
+    - jwennerberg.rhlabs.rhel

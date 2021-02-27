@@ -11,12 +11,18 @@ Vagrant.configure("2") do |config|
           ansible.limit = "all"
           ansible.playbook = "provision.yml"
           ansible.ask_vault_pass = true
+          ansible.groups = {
+            "rhel_lab" => [
+              "rhel-lab[1:#{i}]"
+            ]
+          }
         end
       end
     end
-    config.vm.provider "virtualbox" do |vb, override|
-      vb.memory = 2560
-      vb.cpus = 1
-    end
   end
+  config.vm.provider "virtualbox" do |vb, override|
+    vb.memory = 2560
+    vb.cpus = 1
+  end
+
 end
