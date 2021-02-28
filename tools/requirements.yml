@@ -1,0 +1,9 @@
+collections:
+  - name: https://github.com/jwennerberg/ansible-collection-rhlabs.git
+    type: git
+    version: master
+
+roles:
+  - src: https://github.com/jwennerberg/ansible-role-gitea_podman.git
+    version: master
+    name: jwennerberg.gitea_podman

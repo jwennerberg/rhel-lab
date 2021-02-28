@@ -1,0 +1,14 @@
+---
+- name: Provision RHEL lab tools server
+  hosts:  all
+  become: yes
+  tasks:
+    - name: Base RHEL role
+      ansible.builtin.include_role:
+        name: jwennerberg.rhlabs.rhel
+      vars:
+        enable_rhsm: true
+
+    - name: Gitea podman role
+      ansible.builtin.include_role:
+        name: jwennerberg.gitea_podman
