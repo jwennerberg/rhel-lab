@@ -1,0 +1,66 @@
+---
+- name: Provision AWS instances
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ssh_allow_cidr: 98.128.243.134/32
+    instances:
+      - name: rhel-lab1
+        instance_type: t3.large
+        state: absent
+      - name: rhel-lab2
+        instance_type: t2.micro
+        state: absent
+
+  tasks:
+    - name: Include AWS cloud infra role
+      ansible.builtin.include_role:
+        name: cloud-infra
+        tasks_from: aws.yml
+
+    - name: Launch instances
+      ansible.builtin.include_role:
+        name: cloud-infra
+        tasks_from: aws-instances.yml
+
+    - name: Create local inventory
+      ansible.builtin.copy:
+        dest: aws-inventory
+        content: |
+          [rhel_lab]
+          {% for i in rhel_lab.results %}
+          {{ i.instances[0].public_dns_name }} ansible_user=ec2-user ansible_port=2222
+          {% endfor %}
+
+    - debug:
+        msg: "{{ rhel_lab }}"
+
+#    - name: Add hosts to inventory
+#      ansible.builtin.add_host:
+#        hostname: "{{ item.public_ip }}"
+#        group_name: rhel_lab
+#      loop: "{{ rhel_lab.tagged_instances }}"
+#      register: rhel_lab_inv
+#
+#    - debug:
+#        msg: "{{ rhel_lab_inv }}"
+
+#    - name: Wait for them to become available
+#      ansible.builtin.wait_for:
+#        host: "{{ item.public_dns_name }}"
+#        port: "{{ sshd_port }}"
+#        delay: 30
+#        timeout: 300
+#        state: started
+
+- name: Configure lab servers in AWS
+  hosts: rhel_lab
+  remote_user: ec2-user
+  tasks:
+    - name: Wait for them to become available
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+
+    - debug:
+        msg: "woofoo we're alive"

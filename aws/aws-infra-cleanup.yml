@@ -1,0 +1,12 @@
+---
+- name: Delete AWS infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    infra_state: absent
+  tasks:
+    - name: Include AWS vars
+      ansible.builtin.include_role:
+        name: cloud-infra
+        tasks_from: aws-cleanup.yml

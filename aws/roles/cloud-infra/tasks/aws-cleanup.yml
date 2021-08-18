@@ -1,0 +1,77 @@
+--- 
+- name: Assert AWS creds variables
+  ansible.builtin.assert:
+    that:
+      - ec2_access_key is defined
+      - ec2_secret_key is defined
+    fail_msg: "AWS creds ec2_access_key and ec2_secret_key are not defined"
+
+- name: Get VPC ID
+  ec2_vpc_net_info:
+    aws_access_key: "{{ ec2_access_key }}"
+    aws_secret_key: "{{ ec2_secret_key }}"
+    region: "{{ ec2_region }}"
+    filters:
+      "cidr": "{{ ec2_vpc_cidr }}"
+  register: ec2_vpc_out
+
+- name: Set VPC ID fact
+  set_fact:
+    ec2_vpc_id: "{{ ec2_vpc_out.vpcs[0].vpc_id }}"
+
+- name: Get route table ID
+  ec2_vpc_route_table_info:
+    aws_access_key: "{{ ec2_access_key }}"
+    aws_secret_key: "{{ ec2_secret_key }}"
+    region: "{{ ec2_region }}"
+    filters:
+      "tag:identity": "{{ ec2_vpc }}"
+  register: ec2_vpc_route_table_out
+
+- name: Set route table ID fact
+  set_fact:
+    ec2_vpc_route_table_id: "{{ ec2_vpc_route_table_out.route_tables[0].id }}"
+
+- name: Delete security group
+  ec2_group:
+    state: absent
+    aws_access_key: "{{ ec2_access_key }}"
+    aws_secret_key: "{{ ec2_secret_key }}"
+    name: "{{ ec2_security_group }}"
+    region: "{{ ec2_region }}"
+
+- name: Delete internet gateway
+  ec2_vpc_igw:
+    state: absent
+    aws_access_key: "{{ ec2_access_key }}"
+    aws_secret_key: "{{ ec2_secret_key }}"
+    vpc_id: "{{ ec2_vpc_id }}"
+    region: "{{ ec2_region }}"
+
+- name: Delete subnet route table
+  ec2_vpc_route_table:
+    state: absent
+    aws_access_key: "{{ ec2_access_key }}"
+    aws_secret_key: "{{ ec2_secret_key }}"
+    region: "{{ ec2_region }}"
+    vpc_id: "{{ ec2_vpc_id }}"
+    route_table_id: "{{ ec2_vpc_route_table_id }}"
+    lookup: id
+
+- name: Delete subnet
+  ec2_vpc_subnet:
+    state: absent
+    aws_access_key: "{{ ec2_access_key }}"
+    aws_secret_key: "{{ ec2_secret_key }}"
+    vpc_id: "{{ ec2_vpc_id }}"
+    cidr: "{{ ec2_vpc_cidr }}"
+    region: "{{ ec2_region }}"
+
+- name: Delete VPC
+  ec2_vpc_net:
+    state: absent
+    aws_access_key: "{{ ec2_access_key }}"
+    aws_secret_key: "{{ ec2_secret_key }}"
+    name: "{{ ec2_vpc }}"
+    cidr_block: "{{ ec2_vpc_cidr }}"
+    region: "{{ ec2_region }}"

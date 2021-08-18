@@ -1,0 +1,9 @@
+#cloud-config
+
+packages:
+  - policycoreutils-python-utils
+
+runcmd:
+  - "sed -i -e '/^[#]*Port/s/^.*$/Port {{ sshd_port | default('2222') }}/' /etc/ssh/sshd_config"
+  - "semanage port -a -t ssh_port_t -p tcp {{ sshd_port | default('2222') }}"
+  - "systemctl restart sshd.service"

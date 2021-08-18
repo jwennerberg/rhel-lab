@@ -1,0 +1,23 @@
+---
+ssh_allow_cidr: 0.0.0.0/0
+
+ec2_region: eu-central-1
+ec2_keypair: jxx1
+
+ec2_vpc: rhel-lab
+ec2_vpc_cidr: 10.99.0.0/24
+ec2_security_group: rhel-lab
+ec2_sg_rules:
+  - proto: tcp
+    from_port: 2222
+    to_port: 2222
+    cidr_ip: "{{ ec2_vpc_cidr }}"
+    rule_desc: Allow ssh within subnet
+  - proto: tcp
+    from_port: 2222
+    to_port: 2222
+    cidr_ip: "{{ ssh_allow_cidr }}"
+    rule_desc: Allow ssh
+
+rhel_ami_id: ami-0790bd0b5e63758c9 # eu-central-1 RHEL 8.4
+#rhel_ami_id: ami-009b16df9fcaac611 # eu-central-1 2021-01-27
