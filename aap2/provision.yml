@@ -1,0 +1,12 @@
+---
+- name: Provision AAP2 lab servers
+  hosts:  all
+  become: yes
+
+  vars:
+    aap_component: controller
+    aap_required_ram: 4500
+
+  roles:
+    - jwennerberg.rhlabs.rhel
+    - jwennerberg.rhlabs.aap
