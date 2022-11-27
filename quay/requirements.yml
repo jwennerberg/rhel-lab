@@ -1,0 +1,5 @@
+collections:
+  - name: jwennerberg.rhlabs
+
+roles:
+  - ikke_t.podman_container_systemd

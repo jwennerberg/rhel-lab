@@ -1,0 +1,121 @@
+---
+- name: Provision Quay 
+  hosts: all
+  become: true
+
+  vars:
+    enable_rhsm: true
+    install_container_tools: true
+    firewalld_ports:
+      - 80/tcp
+      - 443/tcp
+      - 5432/tcp
+      - 5433/tcp
+      - 6379/tcp
+
+    container_image_user: "{{ subs_username }}"
+    container_image_password: "{{ subs_pw }}"
+
+    quay_image: registry.redhat.io/quay/quay-rhel8:v3.7.8
+    quay_storage_dir: /var/local/quay/storage
+    quay_config_dir: /var/local/quay/config
+    quay_server_hostname: "quay-lab1.int.wnn.se" ## TODO: use fact
+
+    quay_postgresql_image: registry.redhat.io/rhel8/postgresql-10:1
+    quay_postgresql_hostname: "{{ quay_server_hostname }}"
+    quay_postgresql_dir: /var/local/quay/postgres
+    quay_postgresql_user: quayuser
+    quay_postgresql_database: quay
+
+    quay_redis_image: registry.redhat.io/rhel8/redis-5:1
+    quay_redis_hostname: "{{ quay_server_hostname }}"
+
+  tasks:
+    - name: Setup up local storage
+      ansible.builtin.file:
+        path:
+          - "{{ quay_postgresql_dir }}"
+          - "{{ quay_storage_dir }}"
+          - "{{ quay_config_dir }}"
+        state: directory
+        mode: 0755
+
+    - name: ACL for postgresql data directory
+      ansible.posix.acl:
+        path: "{{ quay_postgresql_dir }}"
+        entry: u:26:-wx
+        state: present
+
+    - name: ACL for Quay data directory
+      ansible.posix.acl:
+        path: "{{ quay_storage_dir }}"
+        entry: u:1001:-wx
+        state: present
+
+    - name: Run Postgresql
+      vars:
+        container_image_list:
+          - "{{ quay_postgresql_image }}"
+        container_name: postgresql-quay
+        container_run_args: >-
+          --rm
+          -e POSTGRESQL_USER={{ quay_postgresql_user }}
+          -e POSTGRESQL_PASSWORD={{ quay_postgresql_password }}
+          -e POSTGRESQL_DATABASE={{ quay_postgresql_database }}
+          -e POSTGRESQL_ADMIN_PASSWORD={{ quay_postgresql_admin_password }}
+          -v {{ quay_postgresql_dir }}:/var/lib/pgsql/data:Z
+          -p 5432:5432
+        container_state: running
+        container_firewall_ports:
+          - 5432/tcp
+      ansible.builtin.include_role:
+        name: ikke_t.podman_container_systemd
+
+    - name: Wait for Postgresql
+      ansible.builtin.wait_for:
+        port: 5432
+
+    # TODO: cleaner way to do this
+    - name: Ensure pg_trgm module is installed
+      ansible.builtin.shell:
+        cmd: podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d {{ quay_postgresql_database }} -U postgres' && touch {{ quay_postgresql_dir }}/pg_trgm
+        creates: "{{ quay_postgresql_dir }}/pg_trgm"
+
+    - name: Run Redis
+      vars:
+        container_image_list:
+          - "{{ quay_redis_image }}"
+        container_name: redis-quay
+        container_run_args: >-
+          --rm
+          -e REDIS_PASSWORD={{ quay_redis_password }}
+          -p 6379:6379
+        container_state: running
+        container_firewall_ports:
+          - 6379/tcp
+      ansible.builtin.include_role:
+        name: ikke_t.podman_container_systemd
+
+    - name: Prepare Quay config
+      ansible.builtin.template:
+        src: config.yml.j2
+        dest: "{{ quay_config_dir }}/config.yaml"
+        mode: 0640
+
+    - name: Run Quay
+      vars:
+        container_image_list:
+          - "{{ quay_image }}"
+        container_name: quay
+        container_run_args: >-
+          --rm
+          -v {{ quay_config_dir }}:/conf/stack:Z
+          -v {{ quay_storage_dir }}:/datastorage:Z
+          -p 80:8080
+          -p 443:8443
+        container_state: running
+        container_firewall_ports:
+          - 80/tcp
+          - 443/tcp
+      ansible.builtin.include_role:
+        name: ikke_t.podman_container_systemd

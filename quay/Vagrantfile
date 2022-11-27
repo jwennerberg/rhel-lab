@@ -1,0 +1,17 @@
+Vagrant.configure("2") do |config|
+  config.vm.define "quay-lab1" do |rhel|
+    rhel.vm.box = "generic/rhel8"
+    rhel.vm.hostname = "quay-lab1"
+    rhel.vm.network "private_network", ip: "10.0.1.39", hostname: true
+
+    rhel.vm.provision :ansible do |ansible|
+      ansible.limit = "all"
+      ansible.playbook = "provision.yml"
+      ansible.ask_vault_pass = true
+    end
+  end
+  config.vm.provider "virtualbox" do |vb, override|
+    vb.memory = 4608
+    vb.cpus = 2
+  end
+end
